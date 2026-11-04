@@ -17,6 +17,8 @@ Scripts live in `scripts/` and share /ds-sync's (`../ds-sync/scripts/`). Run the
 
 ## Steps
 
+**Start from the latest.** If the project is a git repository, switch to `main` and pull (`git switch main && git pull`) before anything else, so this run starts from what's on GitHub. If there are uncommitted changes, stop and ask what to do with them; never switch over them. Without git, skip this.
+
 1. **Start from agreement.** Port refuses tokens with unsynced changes, so it needs a current check. Run /ds-sync's steps 1–5 (prepare, read Figma, compare, check). With `--to markdown`, the offline check (`check.py --no-figma`) is enough. There's no need to sync anything unrelated first; port only looks at the tokens in the proposal.
 
 2. **Plan.** This writes nothing:

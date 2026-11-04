@@ -20,6 +20,8 @@ Scripts live next to this file in `scripts/`. Run them with `python3 -I`. `ROOT`
 
 ## Steps
 
+**Start from the latest.** If the project is a git repository, switch to `main` and pull (`git switch main && git pull`) before anything else, so this run starts from what's on GitHub. If there are uncommitted changes, stop and ask what to do with them; never switch over them. Without git, skip this.
+
 1. **Find the project.** Locate `design-system.config.yaml` and read `figma.file_key`. If `.sync/snapshot.json` is missing, stop: there's no agreed state to compare against. Say so, and that a first sync has to set one.
 
 2. **Prepare the Figma read:**

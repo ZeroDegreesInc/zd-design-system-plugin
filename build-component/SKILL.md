@@ -18,6 +18,7 @@ This skill has no scripts of its own. The checks are /ds-sync's.
 
 ## Before you start
 
+- **Start from the latest.** If the project is a git repository, switch to `main` and pull (`git switch main && git pull`) before anything else, so this run starts from what's on GitHub. If there are uncommitted changes, stop and ask what to do with them; never switch over them. Without git, skip this.
 - **Read** `design-system/FORMATS.md` (component property names, markdown files, hidden components), `_templates/component.md`, `README.md` and `design-system.config.yaml`.
 - **Study two or three existing components closest to the new one,** both their files and their Figma boards. Copy how they're built: the new one should look like it was always there.
 - **Check that everything agrees.** Run /ds-sync's check (its steps 2–5). If anything is pending, sync it or set it aside first, so this component's changes aren't mixed with others.

@@ -25,6 +25,8 @@ Scripts live in `scripts/` and reuse /ds-sync's and /port-tokens' (`../ds-sync/s
 
 ## Steps
 
+**Start from the latest.** If the project is a git repository, switch to `main` and pull (`git switch main && git pull`) before anything else, so this run starts from what's on GitHub. If there are uncommitted changes, stop and ask what to do with them; never switch over them. Without git, skip this.
+
 1. **Choose the pages by template.**
    - **Map the site.** Open the URL in the browser and run `scripts/map.js` as is. It lists the site's pages grouped by the kind of template they probably use, and names other sites the pages link to repeatedly, such as a separate news site.
    - **Pick one page of each kind** the site actually has:
