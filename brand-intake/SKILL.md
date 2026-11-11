@@ -111,6 +111,7 @@ Scripts live in `scripts/` and reuse /ds-sync's and /port-tokens' (`../ds-sync/s
    - **Audit findings** (`audit.md`): the audit observes; it doesn't propose fixes. Fixes belong in the proposal's decisions and the backlog. There are two tables, rows most severe first:
      - **Design findings:** what a designer would notice, such as color roles, type, spacing and shape, states, component consistency, and how the site follows its own guidelines.
      - **Accessibility findings:** what a disabled user would hit, such as focus visibility, heading structure, alt text, text over imagery, text size and contrast. The measured contrast is generated above this table, so don't repeat its numbers. Leave out code hygiene and third-party tools unless they cause an accessibility problem.
+     - **Judge by the system's own contrast rules** ([border.md](../../../design-system/foundations/border.md), [color.md](../../../design-system/foundations/color.md#contrast)), not stricter ones. A text field's outline has no contrast requirement when its label, placeholder and icons meet theirs, so a faint field border isn't a finding. Neither are dividers or disabled controls. A checkbox or radio outline is, because it's the only cue.
 
      Keep each cell short so the tables scan:
      - **Severity:** High, Medium or Low.

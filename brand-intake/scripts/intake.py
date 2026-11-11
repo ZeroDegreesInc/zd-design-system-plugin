@@ -607,8 +607,12 @@ def render(root):
 
 
 def render_site(root, A, text):
-    src = [f"Measured from {A['site']} on {A['scanned_at'][:10]}. One page of each kind of template, so the audit covers what the site is built from. "
-           "Numbers in brackets in the audit and the backlog refer to these pages.", "",
+    n_pages = len([p for p in A["pages"] if p and "error" not in p])
+    one = n_pages == 1
+    pages = "this page" if one else "these pages"
+    src = [f"Measured from {A['site']} on {A['scanned_at'][:10]}. "
+           + ("The site is a single page, so the audit covers all of it. Numbers in brackets in the audit and the backlog refer to it." if one else
+              "One page of each kind of template, so the audit covers what the site is built from. Numbers in brackets in the audit and the backlog refer to these pages."), "",
            "| # | Page | Kind | Widths | Has a form |", "| --- | --- | --- | --- | --- |"]
     for i, p in enumerate(A["pages"]):
         if not p:
@@ -623,11 +627,10 @@ def render_site(root, A, text):
         src += ["", "Not covered: " + A["not_covered"]]
     text = section(text, "sources", "\n".join(src))
 
-    n_pages = len([p for p in A["pages"] if p and "error" not in p])
     shown = A["palette"][:16]
     sampled = any(A.get("sampled", {}).get(k) for k in ("colors_text", "colors_bg", "colors_border"))
     if not sampled and len(shown) == len(A["palette"]) and not A.get("palette_rare"):
-        intro = f"Every color the scan found on the {n_pages} pages ({len(shown)}), with visually identical shades merged."
+        intro = f"Every color the scan found on {pages} ({len(shown)}), with visually identical shades merged."
     else:
         left = []
         if len(shown) < len(A["palette"]):
@@ -636,13 +639,13 @@ def render_site(root, A, text):
             left.append(f"{A['palette_rare']} used only in a trace")
         if sampled:
             left.append("the scan's long tail of rarely used colors")
-        intro = f"The {len(shown)} most-used colors on the {n_pages} pages, with visually identical shades merged. Not shown: " + ", ".join(left) + "."
+        intro = f"The {len(shown)} most-used colors on {pages}, with visually identical shades merged. Not shown: " + ", ".join(left) + "."
     pal = [intro, "", "| Color | Family | Used for | On white | Variants | Pages |", "| --- | --- | --- | --- | --- | --- |"]
     for c in shown:
         pal.append(f"| `{c['hex']}` | {c['family']} | {', '.join(c['roles'])} | {c['on_white']}:1 | {len(c['members'])} | {page_list(A, c['pages'])} |")
     text = section(text, "audit-palette", "\n".join(pal))
 
-    con = [f"**Measured contrast:** {A['contrast']['failing_share']:.0%} of the text on these pages, by character count, is below WCAG AA. "
+    con = [f"**Measured contrast:** {A['contrast']['failing_share']:.0%} of the text on {pages}, by character count, is below WCAG AA. "
            f"Another {A['contrast']['on_image_share']:.0%} sits on photos or video and can't be measured automatically; check those by eye.", ""]
     # pairs someone checked by eye and ruled out (text really on a photo or another fill, a disabled
     # control): intake/review.json {"contrast_ruled_out": [{"fg", "bg", "reason"}]}
@@ -688,10 +691,10 @@ def render_site(root, A, text):
            "- **Corner radius:** " + ", ".join(f"{k}px ({n}×, e.g. `{ex}`)" for k, n, ex in A["radius"]["top"][:5]) + ".",
            "- **Borders:** " + ", ".join(f"{k}px ({n}×)" for k, n in A["borders"]["widths"][:4]) + ".",
            "- **Shadows:** " + ("; ".join(f"`{s}` ({n}×)" for s, n in A["shadows"][:3]) if A["shadows"] else "none") + ".",
-           "- **Breakpoints in the CSS:** " + ", ".join(f"{k}px" for k, _ in A["breakpoints"]["site"][:6]) + "."]
+           "- **Breakpoints in the CSS:** " + (", ".join(f"{k}px" for k, _ in A["breakpoints"]["site"][:6]) or "none found") + "."]
     text = section(text, "audit-layout", "\n".join(lay))
 
-    comp = ["Every pattern the scan looks for that appears on these pages, plus button and input styles. "
+    comp = [f"Every pattern the scan looks for that appears on {pages}, plus button and input styles. "
             "Patterns it doesn't know to look for won't appear; the screenshots cover those.", "",
             "| Pattern | Seen | Pages | In the kit |", "| --- | --- | --- | --- |"]
     styled = [b for b in A["buttons"] if b["kind"] != "text only"]
@@ -783,7 +786,8 @@ def proposal_sections(root, prop):
     for n in p["changes"] + [a for a in p["adds"] if p["after"][a].get("kind") == "var"]:
         b, a = p["before"].get(n, {}), p["after"][n]       # an addition has nothing before it
         kind = {"color": "Primitive colors" if nodes[n][0] == "primitive-color" else "Semantic colors", "fontFamily": "Typefaces", "fontWeight": "Weights"}.get(a.get("type")) \
-            or ("Font sizes" if n.startswith("font-size/") else "Line heights" if n.startswith("line-height/") else nodes[n][0].replace("-", " ").capitalize())
+            or ("Font sizes" if n.startswith("font-size/") else "Line heights" if n.startswith("line-height/")
+                else "Paragraph spacing" if n.startswith("paragraph-spacing/") else nodes[n][0].replace("-", " ").capitalize())
         groups.setdefault((where(n), kind), []).append((n, b, a))
     for (area, kind), rows in groups.items():
         modes = sorted({m for _, b, a in rows for m in list(a.get("modes", {})) + list(b.get("modes", {}))})
