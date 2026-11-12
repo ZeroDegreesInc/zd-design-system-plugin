@@ -6,8 +6,8 @@ Figma page except the one documenting color.
   python3 -I docs.py prepare [--root DIR]
       Writes .sync/docs-read.js. Run it with use_figma. It only reads.
   python3 -I docs.py plan [--root DIR]
-      Finds that result and prints the dry run: text to bind to its variable, stale text to rewrite,
-      type specimens showing the wrong style, and what it can't fix. Saves .sync/docs-plan.json.
+      Finds that result and prints the dry run: a section for any typeface the Typography page doesn't show,
+      stale text to rewrite, type specimens showing the wrong style, and what it can't fix. Saves .sync/docs-plan.json.
   python3 -I docs.py write [--root DIR] [--skip NODE ...] [--accept NODE ...]
       Writes .sync/docs-write.js from the plan, leaving out any node the designer struck, and including
       only the check-by-eye suggestions they accepted. Run it.
@@ -173,11 +173,29 @@ def plan(root):
                     ops.append({"node": t["id"], "kind": "text" if sure else "check", "characters": new_text, "where": f"{where} › {t['at']}",
                                 "before": text, "after": new_text, "because": ", ".join(why), "instance": bool(t.get("i"))})
 
+    # a typeface with no section on the Typography page (a family added since, such as a mono face) gets one,
+    # copied from the last section there and pointed at its own variable
+    sections = got.get("typefaces") or []
+    shown = {t["fv"] for t in sections}
+    word = lambda n: n.split("/")[-1].replace("-family", "").replace("-", " ").title()       # font-family/mono-family → Mono
+    for fv in sorted(n for n, t in got["tokens"].items() if t["t"] == "family" and n not in shown):
+        if not sections:
+            notes.append(f"`{fv}` ({live[fv]}) has no typeface section, and there's none to copy. Add one by hand.")
+            continue
+        src = sections[-1]
+        lab = src.get("label")
+        new_lab = lab.replace(word(src["fv"]), word(fv)) if lab and word(src["fv"]) in lab else None
+        ops.append({"node": src["info"], "kind": "typeface",
+                    "typeface": {"info": src["info"], "weights": src["weights"], "from": src["fv"], "to": fv, "family": live[fv],
+                                 "label": [lab, new_lab] if new_lab else None},
+                    "where": f"{src['page']} › after {lab or src['fv']}", "before": "none",
+                    "after": f"{new_lab or fv}: {live[fv]}, with its weights"})
+
     (root / ".sync" / "docs-plan.json").write_text(json.dumps({"ops": ops, "notes": notes, "bind_by_hand": {f"{pg}|{n}": ids for (pg, n), ids in bindable.items()}},
                                                               indent=1, ensure_ascii=False) + "\n")
     out = [f"Documentation on {len(got['pages'])} Styles pages (the Colors page is /color-cleanup's).",
            f"Tokens that moved since the last sync: {', '.join(f'`{n}` {num(o)} → {num(v)}' for n, (o, v) in sorted(changed.items())) or 'none'}.", ""]
-    for kind, title in (("text", "Rewrite stale text"), ("specimen", "Fix type specimens"),
+    for kind, title in (("typeface", "Add typeface sections"), ("text", "Rewrite stale text"), ("specimen", "Fix type specimens"),
                         ("check", "Check by eye: an old value appears, but the text doesn't name its token. Written only with --accept")):
         rows = [o for o in ops if o["kind"] == kind]
         if rows:
@@ -202,7 +220,7 @@ def write(root, skip, accept):
     (root / ".sync" / "figma-docs.json").unlink(missing_ok=True)       # the read's saved result; the write's comes next
     ops = [o for o in p["ops"] if o["node"] not in set(skip) and (o["kind"] != "check" or o["node"] in set(accept))]
     nonce = secrets.token_hex(6)
-    js_ops = [{k: o[k] for k in ("node", "bind", "characters", "fontName", "family_var") if k in o} for o in ops]
+    js_ops = [{k: o[k] for k in ("node", "bind", "characters", "fontName", "family_var", "typeface") if k in o} for o in ops]
     js = (HERE / "docs.template.js").read_text().replace("__INPUT__", json.dumps({"mode": "write", "nonce": nonce, "ops": js_ops}, ensure_ascii=False))
     (root / ".sync" / "docs-write.js").write_text(js)
     tag = json.loads((root / ".sync" / "docs-tag.json").read_text())

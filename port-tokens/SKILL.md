@@ -79,7 +79,8 @@ Scripts live in `scripts/` and share /ds-sync's (`../ds-sync/scripts/`). Run the
      ```
      python3 -I <skill>/scripts/docs.py plan --root ROOT
      ```
-     Show the designer the dry run. It has five parts:
+     Show the designer the dry run. It has six parts:
+     - **Add typeface sections:** a font family with no section on the Typography page, such as a newly added mono face, gets one. It's copied from the last section there (the family's name, a character sample and its weights), with every layer pointed at the new family's variable and the label renamed. Afterwards, the read-again below fixes any weight sample the new family shows wrongly.
      - **Rewrite stale text:** running text that names a moved token and still states its old value, and number labels that show a moved token's old value, such as a grid's "24" beside `space-m`.
      - **Fix type specimens:** a weight sample showing the wrong style after a family change, such as "SemiBold" rendering Bold.
      - **Check by eye:** text holding an old value without naming its token, such as a breakpoint range. Often right, sometimes a coincidence. Nothing here is written unless the designer accepts it.
@@ -89,7 +90,7 @@ Scripts live in `scripts/` and share /ds-sync's (`../ds-sync/scripts/`). Run the
      ```
      python3 -I <skill>/scripts/docs.py write --root ROOT [--skip NODE ...] [--accept NODE ...]
      ```
-     `--skip` strikes an edit; `--accept` takes a check-by-eye suggestion. Run `.sync/docs-write.js`, then `docs.py finish`, then prepare and read again: the plan should come back empty apart from what was struck or can't be fixed.
+     `--skip` strikes an edit, including a typeface section (by the node the plan lists); `--accept` takes a check-by-eye suggestion. Run `.sync/docs-write.js`, then `docs.py finish`, then prepare and read again: the plan should come back empty apart from what was struck or can't be fixed.
 
 7. **Hand over.**
    - **Look:** ask the designer to review the components in Figma and adjust anything there. That's the point of porting to Figma first.
