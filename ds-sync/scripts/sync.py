@@ -126,7 +126,8 @@ def apply(A, p, root):
             run["renames"][old] = new
     groups = L.collection_groups(tokens)
     meta = (fig["tokens"].get("meta") or {})
-    for n in p["tokens"]:
+    # variables before styles, so a new style can refer to a variable added in the same run
+    for n in sorted(p["tokens"], key=lambda n: A["tokens"][n]["figma_new"]["kind"] != "var"):
         conv = L.Converter(tokens)
         proj = A["tokens"][n]["figma_new"]
         existing = conv.nodes.get(n)
