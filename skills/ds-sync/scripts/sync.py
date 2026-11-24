@@ -74,6 +74,7 @@ def plan(A, take_figma):
         else:
             p["intro"] = True
     p["contrast"] = [l for l in A["contrast"]["fails"] if "in Figma only" in l or "in both places" in l]
+    p["refresh"] = [n for n, *_ in L.stale_derived(json.loads((A["root"] / "tokens.json").read_text()))]
     return p
 
 
@@ -85,6 +86,8 @@ def describe(p):
         out.append("Rename in tokens.json: " + ", ".join(f"`{a}` → `{b}`" for a, b in p["renames"].items()))
     if p["tokens"]:
         out.append("Update or add in tokens.json: " + ", ".join(f"`{n}`" for n in p["tokens"]))
+    if p.get("refresh"):
+        out.append("Refresh the stored value of colors that follow another color: " + ", ".join(f"`{n}`" for n in p["refresh"]))
     if p["deletes"]:
         out.append("Delete from tokens.json: " + ", ".join(f"`{n}`" for n in p["deletes"]))
     ic = p["icons"]
@@ -146,7 +149,9 @@ def apply(A, p, root):
         if n in nodes:
             L.delete_at(tokens, nodes[n][1])
             run["deletes"].append(n)
-    if run["tokens"] or run["deletes"] or run["renames"]:
+    # colors that follow another color at an opacity (shadows/*) take their source's new value
+    run["refreshed"] = L.refresh_derived(tokens)
+    if run["tokens"] or run["deletes"] or run["renames"] or run["refreshed"]:
         L.sync_group_modes(tokens)      # a mode added in Figma joins its collection's list
         tokens_path.write_text(json.dumps(tokens, indent=2, ensure_ascii=False) + "\n")
         run["files"].append("tokens.json")

@@ -573,6 +573,7 @@ def describe(p, prop_path, root):
 
 def prepare(root, p, prop_path):
     if p["start"] == "markdown":
+        L.refresh_derived(p["new_tokens"])       # colors that follow a changed color at an opacity
         (root / "tokens.json").write_text(json.dumps(p["new_tokens"], indent=2, ensure_ascii=False) + "\n")
         render = root / "_scripts" / "render.py"
         if render.exists():

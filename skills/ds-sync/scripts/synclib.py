@@ -967,6 +967,36 @@ class Converter:
         return out
 
 
+def stale_derived(tokens):
+    """Colors stored as another color at an opacity (`colorFrom`, such as shadows/*) whose resolved
+    $value no longer matches their source. Their projection compares only the link, so a change to the
+    source leaves the stored value behind unless something rewrites it. Returns [(name, source, had, now)]."""
+    conv = Converter(tokens)
+    out = []
+    for name, (_, _, node) in conv.nodes.items():
+        src = ((node.get("$extensions") or {}).get("figma") or {}).get("colorFrom")
+        if not src or node.get("$type") != "color" or not isinstance(node.get("$value"), dict):
+            continue
+        base = _alias_name(src, conv.name2path)
+        c = conv.resolve_color(base)
+        v = node["$value"]
+        if str(v.get("hex", "")).lower() != str(c["hex"]).lower() or norm(v.get("components")) != norm(c["components"]):
+            out.append((name, base, v.get("hex"), c["hex"]))
+    return out
+
+
+def refresh_derived(tokens):
+    """Rewrite each stale `colorFrom` color's $value from its source, keeping its own alpha. Returns the names."""
+    conv = Converter(tokens)
+    fixed = []
+    for name, base, _, _ in stale_derived(tokens):
+        c = conv.resolve_color(base)
+        v = conv.nodes[name][2]["$value"]
+        v["components"], v["hex"] = c["components"], c["hex"]
+        fixed.append(name)
+    return fixed
+
+
 def _alias_name(ref, name2path):
     path = ref.strip("{}")
     for n, p in name2path.items():

@@ -373,6 +373,13 @@ def analyse(root, no_figma=False):
     texts = {rel: (root / rel).read_text() for rel in files_now if rel.endswith(".md")}
     stale_text = L.stale_text(texts, local)
 
+    # colors stored as another color at an opacity, left behind when their source changed
+    derived = L.stale_derived(json.loads((root / "tokens.json").read_text()))
+    if derived:
+        warnings.append("tokens.json stores out-of-date values for colors that follow another color: "
+                        + ", ".join(f"`{n}` is {had}, but `{src}` is now {now}" for n, src, had, now in derived)
+                        + ". Figma already shows the new color; the next sync apply rewrites these values.")
+
     return {"root": root, "cfg": cfg, "places": places, "snap": snap, "fig": fig, "problems": problems, "stale_text": stale_text, "intro": intro, "foundation_fails": fails,
             "warnings": warnings, "notes": notes, "rows": rows, "tokens": tok, "renamed": renamed,
             "local_tokens": local, "components": comps, "comp_file": comp_file, "changed_files": changed_files,
