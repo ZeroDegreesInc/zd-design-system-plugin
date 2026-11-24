@@ -1,0 +1,6 @@
+{
+  "name": "zd-design-system",
+  "version": "0.1.0",
+  "description": "ZeroDegrees design-system skills: audit a client's brand, port tokens into Figma, keep Figma and the markdown in sync, and build components spec-first.",
+  "author": { "name": "ZeroDegrees" }
+}

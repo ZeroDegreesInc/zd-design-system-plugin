@@ -51,8 +51,33 @@ def sha(data):
 
 # ── project files ────────────────────────────────────────────────────
 
+# The project formats these scripts read and write. A project names its own in
+# design-system.config.yaml (`format_version`); one without it predates the field
+# and is format 1. Raise this, and keep the old number while it's still readable,
+# when a release changes a file format in a way older scripts would misread.
+FORMAT_VERSIONS = {1}
+
+
 def load_config(root):
-    """A tiny YAML reader for design-system.config.yaml (flat keys, one level of nesting, inline lists)."""
+    """A tiny YAML reader for design-system.config.yaml (flat keys, one level of nesting, inline lists).
+
+    Stops if the project's format_version isn't one these scripts support, so a
+    skill never half-writes a project in a format it doesn't know.
+    """
+    cfg = _read_config(root)
+    v = cfg.get("format_version") or "1"
+    if not str(v).isdigit() or int(v) not in FORMAT_VERSIONS:
+        known = ", ".join(str(n) for n in sorted(FORMAT_VERSIONS))
+        newest = max(FORMAT_VERSIONS)
+        hint = ("Update the zd-design-system plugin from the organization's plugin library."
+                if str(v).isdigit() and int(v) > newest else
+                "Bring the project up to date with the starter kit's FORMATS.md, then set its format_version.")
+        raise SystemExit(f"This project's design-system.config.yaml says format_version {v}, "
+                         f"but this version of the skills reads format {known}. {hint}")
+    return cfg
+
+
+def _read_config(root):
     cfg, section = {}, None
     for raw in (root / "design-system.config.yaml").read_text().splitlines():
         line = raw.split(" #")[0].rstrip()
