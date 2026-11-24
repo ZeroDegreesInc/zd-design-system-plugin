@@ -2,6 +2,8 @@
 
 The four Claude skills that build and maintain a ZeroDegrees client design system. They're published as one plugin to the organization's plugin library on claude.ai, so a fix released here reaches every client project at once.
 
+**How it all fits together:** the [Design System Pipeline doc](https://claude.ai/artifact/MW1v9ZqHbwHb33ebUZG48Z) walks through every stage, from setting up a client to everyday changes, and what you approve at each one.
+
 | Skill | What it does |
 | --- | --- |
 | `brand-intake` | Audits a client's brand and proposes tokens for it |
